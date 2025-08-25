@@ -11,12 +11,12 @@ class Transformer(BaseModel):
 
     def __init__(
         self,
-        num_digits=3,
-        embed_dim=128,
-        max_seq_len=5000,
-        num_heads=8,
-        dropout_rate=0.1,
-        transformer_num_layers=6,
+        num_digits: int = 3,
+        embed_dim: int = 128,
+        max_seq_len: int = 5000,
+        num_heads: int = 8,
+        dropout_rate: float = 0.1,
+        transformer_num_layers: int = 6,
         **_kwargs,
     ):
         super().__init__()
@@ -47,7 +47,7 @@ class Transformer(BaseModel):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         for module in self.modules():
             if isinstance(module, nn.Linear):
                 torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
@@ -59,7 +59,7 @@ class Transformer(BaseModel):
                 torch.nn.init.zeros_(module.bias)
                 torch.nn.init.ones_(module.weight)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, seq_len = x.size()
         assert seq_len <= self.max_seq_len, (
             f"Sequence length {seq_len} exceeds max_seq_len {self.max_seq_len}"
@@ -84,7 +84,9 @@ class Transformer(BaseModel):
 
         return logits
 
-    def generate(self, x, max_length=20, temperature=1.0):
+    def generate(
+        self, x: torch.Tensor, max_length: int = 20, temperature: float = 1.0
+    ) -> torch.Tensor:
         """
         Generate sequences using the transformer model.
         Args:
