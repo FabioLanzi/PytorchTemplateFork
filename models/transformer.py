@@ -1,12 +1,20 @@
+"""
+This module contains a minimal Transformer class for sequence tasks and a demo function.
+"""
+
 import torch
 from torch import nn
 
-from .base import BaseModel
+from models.base import BaseModel
 
 
 class Transformer(BaseModel):
     """
-    Decoder-only Transformer model for sequence tasks.
+    Minimal decoder-only Transformer model for sequence tasks.
+
+    NOTE: the "decoder" here refers to the GPT-style architecture where
+    causal masking is applied in the self-attention layers. The implementation
+    uses `nn.TransformerEncoder` with a causal mask to achieve this.
     """
 
     def __init__(
@@ -19,6 +27,17 @@ class Transformer(BaseModel):
         transformer_num_layers: int = 6,
         **_kwargs,
     ):
+        """
+        Initializes the Transformer model.
+
+        Args:
+            num_digits: number of unique tokens (vocabulary size)
+            embed_dim: embedding dimension
+            max_seq_len: maximum sequence length
+            num_heads: number of attention heads
+            dropout_rate: dropout rate (float in range [0, 1])
+            transformer_num_layers: number of transformer layers
+        """
         super().__init__()
 
         self.num_digits = num_digits
@@ -38,9 +57,8 @@ class Transformer(BaseModel):
             encoder_layer, num_layers=transformer_num_layers, enable_nested_tensor=False
         )
 
-        self.fc = nn.Linear(
-            embed_dim, num_digits
-        )  # Output should match num_digits, not input_dim
+        self.fc = nn.Linear(embed_dim, num_digits)
+
         self.max_seq_len = max_seq_len
         self.dropout = nn.Dropout(dropout_rate)
         self.layernorm = nn.LayerNorm(embed_dim)
@@ -48,6 +66,13 @@ class Transformer(BaseModel):
         self._init_weights()
 
     def _init_weights(self) -> None:
+        """
+        Initializes model parameters.
+
+        - Linear layers: weights ~ N(0, 0.02), biases = 0
+        - Embeddings: weights ~ N(0, 0.02)
+        - LayerNorm: bias = 0, weight = 1
+        """
         for module in self.modules():
             if isinstance(module, nn.Linear):
                 torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
@@ -60,6 +85,16 @@ class Transformer(BaseModel):
                 torch.nn.init.ones_(module.weight)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of the transformer model.
+
+        Args:
+            x: input batch of shape (batch_size, seq_len)
+                - int values in range [0, num_digits-1]
+
+        Returns:
+             predicted logits of shape (batch_size, seq_len, num_digits)
+        """
         batch_size, seq_len = x.size()
         assert seq_len <= self.max_seq_len, (
             f"Sequence length {seq_len} exceeds max_seq_len {self.max_seq_len}"
@@ -89,10 +124,14 @@ class Transformer(BaseModel):
     ) -> torch.Tensor:
         """
         Generate sequences using the transformer model.
+
         Args:
-            x: input tensor
+            x: input batch of shape (batch_size, seq_len)
             max_length: number of tokens to generate
             temperature: sampling temperature
+
+        Returns:
+            generated sequences of shape (batch_size, seq_len + max_length)
         """
         for _ in range(max_length):
             logits = self(x)
@@ -108,7 +147,7 @@ def demo():
     Demonstrates the forward pass of the model with a random input tensor.
 
     This function:
-    - Initializes the model with 3 input channels
+    - Initializes the Transformer model
     - Runs a forward pass on a random input tensor
     - Prints model parameter count and input/output shapes
     """
