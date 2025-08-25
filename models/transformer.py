@@ -95,7 +95,7 @@ class Transformer(BaseModel):
         Returns:
              predicted logits of shape (batch_size, seq_len, num_digits)
         """
-        batch_size, seq_len = x.size()
+        _, seq_len = x.size()
         assert seq_len <= self.max_seq_len, (
             f"Sequence length {seq_len} exceeds max_seq_len {self.max_seq_len}"
         )
