@@ -10,8 +10,8 @@ class Transformer(BaseModel):
     """
     
     def __init__(self, num_digits = 3, embed_dim=128, max_seq_len=5000,
-                 num_heads=8, dropout_rate=0.1, transformer_num_layers=6, **kwargs):
-        super().__init__(**kwargs)
+                 num_heads=8, dropout_rate=0.1, transformer_num_layers=6, **_kwargs):
+        super().__init__()
         
         self.num_digits = num_digits
         
@@ -81,5 +81,4 @@ class Transformer(BaseModel):
             _, next_token = torch.topk(probs, k=1, dim=-1)
             x = torch.cat([x, next_token], dim=1)  
         return x
-            
             

@@ -13,7 +13,7 @@ class BaseModel(nn.Module):
         """
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
         
-    def __init__(self, **kwargs):
+    def __init__(self):
         
         super().__init__()
 
