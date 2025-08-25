@@ -101,3 +101,34 @@ class Transformer(BaseModel):
             _, next_token = torch.topk(probs, k=1, dim=-1)
             x = torch.cat([x, next_token], dim=1)
         return x
+
+
+def demo():
+    """
+    Demonstrates the forward pass of the model with a random input tensor.
+
+    This function:
+    - Initializes the model with 3 input channels
+    - Runs a forward pass on a random input tensor
+    - Prints model parameter count and input/output shapes
+    """
+
+    batch_size = 4
+    seq_len = 10
+    num_digits = 3
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = Transformer(num_digits=num_digits).to(device)
+
+    x = torch.randint(0, num_digits, (batch_size, seq_len), device=device)
+    y = model(x)
+
+    print(f"Model: {model.__class__.__name__}")
+    print(f"├── # params.......: {model.n_param / 1e6:.2f}M")
+    print(f"├── batch size.....: {batch_size}")
+    print(f"├── input shape....: {tuple(x.shape)}")
+    print(f"└── output shape...: {tuple(y.shape)}")
+
+
+if __name__ == "__main__":
+    demo()
